@@ -21,7 +21,7 @@ const BookingPage = () => {
             try {
                 const { data } = await axios.get(`/services/${serviceId}`);
                 setService(data);
-            } catch (err) {
+            } catch (error) {
                 setError('Service not found');
             }
         };
@@ -51,8 +51,8 @@ const BookingPage = () => {
                         setAvailableSlots(data.slots || []);
                         setError('');
                     }
-                } catch (err) {
-                    console.error("Failed to fetch slots", err);
+                } catch (error) {
+                    console.error("Failed to fetch slots", error);
                     setError('Failed to load availability');
                 } finally {
                     setLoading(false);
@@ -83,8 +83,8 @@ const BookingPage = () => {
             });
             alert('Booking Confirmed!');
             navigate('/dashboard');
-        } catch (err) {
-            setError(err.response?.data?.message || 'Booking failed');
+        } catch (error) {
+            setError(error.response?.data?.message || 'Booking failed');
         } finally {
             setLoading(false);
         }
