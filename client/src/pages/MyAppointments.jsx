@@ -46,6 +46,34 @@ const MyAppointments = () => {
         }
     };
 
+    const handleReschedule = async (appointment) => {
+        if (window.confirm('To reschedule, we must cancel your current slot first. Proceed?')) {
+            try {
+                const token = localStorage.getItem('token');
+                const config = {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                };
+                // Step 1: Cancel current
+                await axios.put(`/api/appointments/${appointment._id}/cancel`, {}, config);
+
+                // Step 2: Navigate to booking page
+                // SAFE: Check if serviceId is object or string
+                const serviceId = appointment.serviceId?._id || appointment.serviceId;
+                if (!serviceId) {
+                    alert('Service details missing, cannot reschedule.');
+                    fetchAppointments();
+                    return;
+                }
+
+                window.location.href = `/book/${serviceId}`;
+            } catch (err) {
+                alert(err.response?.data?.message || 'Failed to reschedule');
+            }
+        }
+    };
+
     const getStatusColor = (status) => {
         switch (status) {
             case 'confirmed':
@@ -136,12 +164,20 @@ const MyAppointments = () => {
                                     </div>
 
                                     {['pending', 'confirmed'].includes(apt.status) && (
-                                        <button
-                                            onClick={() => handleCancel(apt._id)}
-                                            className="w-full py-3 px-4 bg-white border border-red-100 text-red-500 rounded-xl font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all text-sm"
-                                        >
-                                            Cancel Appointment
-                                        </button>
+                                        <div className="flex flex-col gap-2">
+                                            <button
+                                                onClick={() => handleReschedule(apt)}
+                                                className="w-full py-3 px-4 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-xl font-bold hover:bg-indigo-100 hover:text-indigo-700 transition-all text-sm"
+                                            >
+                                                Reschedule
+                                            </button>
+                                            <button
+                                                onClick={() => handleCancel(apt._id)}
+                                                className="w-full py-3 px-4 bg-white border border-red-100 text-red-500 rounded-xl font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all text-sm"
+                                            >
+                                                Cancel Appointment
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             </div>
