@@ -11,6 +11,7 @@ const ProviderDashboard = () => {
         name: '', description: '', category: 'Cleaning', price: '', duration: 60
     });
     const [editingId, setEditingId] = useState(null);
+    const [myServices, setMyServices] = useState([]);
 
     // DEBUG LOG
     console.log("Current User Role:", user?.role);
