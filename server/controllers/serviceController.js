@@ -27,6 +27,18 @@ const getServices = async (req, res) => {
     }
 };
 
+// @desc    Get logged-in provider's services
+// @route   GET /api/services/my-services
+// @access  Private (Provider)
+const getMyServices = async (req, res) => {
+    try {
+        const services = await Service.find({ providerId: req.user._id });
+        res.json(services);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // @desc    Get single service
 // @route   GET /api/services/:id
 // @access  Public
@@ -124,5 +136,6 @@ module.exports = {
     getServiceById,
     createService,
     updateService,
-    deleteService
+    deleteService,
+    getMyServices
 };

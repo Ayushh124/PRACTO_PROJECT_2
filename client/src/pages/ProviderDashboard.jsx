@@ -47,8 +47,7 @@ const ProviderDashboard = () => {
 
     const fetchMyServices = async () => {
         try {
-            // Now supported by backend
-            const { data } = await axios.get(`/services?providerId=${user._id}`);
+            const { data } = await axios.get('/services/my-services');
             setMyServices(data);
         } catch (error) {
             console.error("Failed to fetch my services:", error);

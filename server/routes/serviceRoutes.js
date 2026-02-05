@@ -5,13 +5,17 @@ const {
     getServiceById,
     createService,
     updateService,
-    deleteService
+    deleteService,
+    getMyServices
 } = require('../controllers/serviceController');
 const { protect, provider } = require('../middleware/authMiddleware');
 
 router.route('/')
     .get(getServices) // Public route
     .post(protect, provider, createService); // Protected route
+
+router.route('/my-services')
+    .get(protect, provider, getMyServices);
 
 router.route('/:id')
     .get(getServiceById) // Public route
