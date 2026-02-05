@@ -1,5 +1,6 @@
 const Appointment = require('../models/Appointment');
 const Service = require('../models/Service');
+const User = require('../models/User');
 const mongoose = require('mongoose');
 
 // @desc    Book an appointment
@@ -173,7 +174,28 @@ const cancelAppointment = async (req, res) => {
     }
 };
 
-const getTakenSlots = async (req, res) => {
+// Helper to generate slots
+const generateSlots = (startStr, endStr, duration) => {
+    const slots = [];
+    const [startHour, startMin] = startStr.split(':').map(Number);
+    const [endHour, endMin] = endStr.split(':').map(Number);
+
+    let current = new Date();
+    current.setHours(startHour, startMin, 0, 0);
+
+    const end = new Date();
+    end.setHours(endHour, endMin, 0, 0);
+
+    while (current < end) {
+        const hours = current.getHours().toString().padStart(2, '0');
+        const minutes = current.getMinutes().toString().padStart(2, '0');
+        slots.push(`${hours}:${minutes}`);
+        current.setMinutes(current.getMinutes() + duration);
+    }
+    return slots;
+};
+
+const getAvailableSlots = async (req, res) => {
     try {
         const { providerId, date } = req.query;
 
@@ -181,6 +203,27 @@ const getTakenSlots = async (req, res) => {
             return res.status(400).json({ message: 'Missing parameters' });
         }
 
+        const provider = await User.findById(providerId);
+        if (!provider) {
+            return res.status(404).json({ message: 'Provider not found' });
+        }
+
+        // Get Availability Settings (or defaults)
+        const { startTime = "09:00", endTime = "17:00", slotDuration = 60, holidays = [] } = provider.availability || {};
+
+        // Check if date is a holiday
+        // date string from frontend is usually ISO. We need YYYY-MM-DD
+        const queryDate = new Date(date);
+        const dateStr = queryDate.toISOString().split('T')[0];
+
+        if (holidays.includes(dateStr)) {
+            return res.json({ slots: [], message: 'Provider is on holiday' });
+        }
+
+        // Generate all possible slots for this provider
+        const allSlots = generateSlots(startTime, endTime, slotDuration);
+
+        // Fetch booked slots
         const startDateTime = new Date(date);
         startDateTime.setHours(0, 0, 0, 0);
         const endDateTime = new Date(startDateTime);
@@ -192,10 +235,16 @@ const getTakenSlots = async (req, res) => {
             date: { $gte: startDateTime, $lte: endDateTime }
         });
 
-        // Extract timeSlots
         const takenSlots = appointments.map(appt => appt.timeSlot);
 
-        res.json(takenSlots);
+        // Filter available slots
+        const availableSlots = allSlots.filter(slot => !takenSlots.includes(slot));
+
+        res.json({
+            slots: availableSlots,
+            settings: provider.availability
+        });
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -204,8 +253,9 @@ const getTakenSlots = async (req, res) => {
 module.exports = {
     createAppointment,
     getMyAppointments,
-    getMyBookings, // Exported as requested
+    getMyBookings,
     updateAppointmentStatus,
     cancelAppointment,
-    getTakenSlots
+    getTakenSlots,
+    getAvailableSlots
 };

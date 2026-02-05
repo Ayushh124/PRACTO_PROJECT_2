@@ -3,6 +3,9 @@ const Service = require('../models/Service');
 // @desc    Get all services
 // @route   GET /api/services
 // @access  Public
+// @desc    Get all services
+// @route   GET /api/services
+// @access  Public
 const getServices = async (req, res) => {
     try {
         const keyword = req.query.keyword
@@ -15,8 +18,9 @@ const getServices = async (req, res) => {
             : {};
 
         const category = req.query.category ? { category: req.query.category } : {};
+        const providerId = req.query.providerId ? { providerId: req.query.providerId } : {};
 
-        const services = await Service.find({ ...keyword, ...category }).populate('providerId', 'name email');
+        const services = await Service.find({ ...keyword, ...category, ...providerId }).populate('providerId', 'name email');
         res.json(services);
     } catch (error) {
         res.status(500).json({ message: error.message });

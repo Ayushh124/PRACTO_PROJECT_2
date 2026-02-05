@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Navbar from './components/Navbar';
 import MyAppointments from './pages/MyAppointments';
+import ProfileSettings from './pages/ProfileSettings';
 
 // Component to protect routes that require authentication
 const ProtectedRoute = ({ children }) => {
@@ -75,6 +76,11 @@ function App() {
         <Route path="/my-appointments" element={
           <ProtectedRoute>
             <MyAppointments />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile-settings" element={
+          <ProtectedRoute>
+            <ProfileSettings />
           </ProtectedRoute>
         } />
 

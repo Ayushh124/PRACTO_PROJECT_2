@@ -21,7 +21,7 @@ const appointmentSchema = new mongoose.Schema({
         required: true
     },
     timeSlot: {
-        type: String, // e.g., "10:00 AM"
+        type: String, 
         required: true
     },
     // Derived fields for efficient Double Booking Prevention queries

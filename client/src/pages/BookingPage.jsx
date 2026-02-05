@@ -14,14 +14,7 @@ const BookingPage = () => {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [takenSlots, setTakenSlots] = useState([]);
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    // Hardcoded slots for demo purpose (In real app, fetch available slots from backend)
-    const timeSlots = [
-        "09:00", "10:00", "11:00", "12:00", "13:00",
-        "14:00", "15:00", "16:00", "17:00"
-    ];
+    const [availableSlots, setAvailableSlots] = useState([]);
 
     useEffect(() => {
         const fetchService = async () => {
@@ -37,29 +30,40 @@ const BookingPage = () => {
         }
     }, [serviceId]);
 
-    // Fetch taken slots when provider or date changes
+    // Fetch AVAILABLE slots when provider or date changes
     useEffect(() => {
-        const fetchTakenSlots = async () => {
+        const fetchAvailableSlots = async () => {
             if (service?.providerId?._id && selectedDate) {
+                setLoading(true);
                 try {
-                    const { data } = await axios.get('/appointments/taken-slots', {
+                    const { data } = await axios.get('/appointments/available-slots', {
                         params: {
                             providerId: service.providerId._id,
                             date: selectedDate.toISOString()
                         }
                     });
-                    setTakenSlots(data);
+
+                    if (data.message) {
+                        // e.g. "Provider is on holiday"
+                        setError(data.message);
+                        setAvailableSlots([]);
+                    } else {
+                        setAvailableSlots(data.slots || []);
+                        setError('');
+                    }
                 } catch (err) {
-                    console.error("Failed to fetch taken slots", err);
+                    console.error("Failed to fetch slots", err);
+                    setError('Failed to load availability');
+                } finally {
+                    setLoading(false);
                 }
             }
         };
-        fetchTakenSlots();
+        fetchAvailableSlots();
     }, [service, selectedDate]);
 
     const handleBook = async () => {
         if (!user) {
-            // Redirect to login but maybe remember return url in a real app
             navigate('/login');
             return;
         }
@@ -72,16 +76,14 @@ const BookingPage = () => {
         setLoading(true);
 
         try {
-            // Updated endpoint to /appointments to match backend
             await axios.post('/appointments', {
                 serviceId,
-                date: selectedDate, // Backend handles parsing
+                date: selectedDate,
                 timeSlot: selectedSlot
             });
             alert('Booking Confirmed!');
-            navigate('/dashboard'); // Or my-appointments
+            navigate('/dashboard');
         } catch (err) {
-            // Handle Double Booking Error specifically
             setError(err.response?.data?.message || 'Booking failed');
         } finally {
             setLoading(false);
@@ -103,7 +105,7 @@ const BookingPage = () => {
                     <div className="relative">
                         <DatePicker
                             selected={selectedDate}
-                            onChange={(date) => setSelectedDate(date)}
+                            onChange={(date) => { setSelectedDate(date); setSelectedSlot(null); }}
                             minDate={new Date()}
                             className="p-3 border border-slate-200 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
                         />
@@ -112,28 +114,28 @@ const BookingPage = () => {
 
                 <div className="mb-8">
                     <label className="block text-sm font-bold text-slate-700 mb-3 uppercase tracking-wide">Select Time</label>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                        {timeSlots.map(slot => {
-                            const isTaken = takenSlots.includes(slot);
-                            return (
+
+                    {availableSlots.length === 0 ? (
+                        <div className="text-slate-500 italic p-4 bg-slate-50 rounded-lg text-center">
+                            No available slots for this date.
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                            {availableSlots.map(slot => (
                                 <button
                                     key={slot}
-                                    onClick={() => !isTaken && setSelectedSlot(slot)}
-                                    disabled={isTaken}
+                                    onClick={() => setSelectedSlot(slot)}
                                     className={`py-3 px-4 rounded-xl text-sm font-bold transition-all 
-                                    ${isTaken
-                                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                            : selectedSlot === slot
-                                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105'
-                                                : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-white hover:border-indigo-300 hover:text-indigo-600'
+                                    ${selectedSlot === slot
+                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105'
+                                            : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-white hover:border-indigo-300 hover:text-indigo-600'
                                         }`}
                                 >
                                     {slot}
-                                    {isTaken && <span className="block text-[10px] uppercase font-normal">Booked</span>}
                                 </button>
-                            );
-                        })}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {error && (

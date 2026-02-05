@@ -6,7 +6,8 @@ const {
     getMyBookings,
     updateAppointmentStatus,
     cancelAppointment,
-    getTakenSlots
+    getTakenSlots,
+    getAvailableSlots
 } = require('../controllers/appointmentController');
 const { protect, provider } = require('../middleware/authMiddleware');
 
@@ -27,5 +28,8 @@ router.delete('/:id', protect, cancelAppointment);
 
 // Route for checking taken slots
 router.get('/taken-slots', protect, getTakenSlots);
+
+// Route for getting available slots (dynamic)
+router.get('/available-slots', protect, getAvailableSlots);
 
 module.exports = router;

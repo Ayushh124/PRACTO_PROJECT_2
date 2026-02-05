@@ -89,4 +89,47 @@ const loginUser = async (req, res) => {
     }
 };
 
-module.exports = { registerUser, loginUser };
+// @desc    Update user profile (specifically availability)
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateUserProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+
+        if (user) {
+            user.name = req.body.name || user.name;
+            user.email = req.body.email || user.email;
+
+            // Password update
+            if (req.body.password) {
+                user.password = req.body.password;
+            }
+
+            // Availability Update (Merge with existing)
+            if (req.body.availability) {
+                user.availability = {
+                    ...user.availability,
+                    ...req.body.availability
+                };
+            }
+
+            const updatedUser = await user.save();
+
+            res.json({
+                _id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                token: generateToken(updatedUser._id),
+                providerProfile: updatedUser.providerProfile,
+                availability: updatedUser.availability
+            });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = { registerUser, loginUser, updateUserProfile };
