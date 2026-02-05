@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const MyAppointments = () => {
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchAppointments();
@@ -61,13 +62,15 @@ const MyAppointments = () => {
                 // Step 2: Navigate to booking page
                 // SAFE: Check if serviceId is object or string
                 const serviceId = appointment.serviceId?._id || appointment.serviceId;
+
                 if (!serviceId) {
-                    alert('Service details missing, cannot reschedule.');
+                    alert("Cannot reschedule: Service ID not found");
                     fetchAppointments();
                     return;
                 }
 
-                window.location.href = `/book/${serviceId}`;
+                console.log("Navigating to ID:", serviceId);
+                navigate(`/book/${serviceId}`);
             } catch (err) {
                 alert(err.response?.data?.message || 'Failed to reschedule');
             }
