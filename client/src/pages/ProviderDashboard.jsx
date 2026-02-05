@@ -10,7 +10,7 @@ const ProviderDashboard = () => {
     const [serviceForm, setServiceForm] = useState({
         name: '', description: '', category: 'Cleaning', price: '', duration: 60
     });
-    const [editingId, setEditingId] = useState(null);
+    const [editingServiceId, setEditingServiceId] = useState(null);
     const [myServices, setMyServices] = useState([]);
 
     // DEBUG LOG
@@ -68,17 +68,18 @@ const ProviderDashboard = () => {
     const handleSubmitService = async (e) => {
         e.preventDefault();
         try {
-            if (editingId) {
+            if (editingServiceId) {
                 // Update existing
-                await axios.put(`/services/${editingId}`, serviceForm);
+                await axios.put(`/services/${editingServiceId}`, serviceForm);
                 alert('Service Updated!');
             } else {
                 // Create new
                 await axios.post('/services', serviceForm);
                 alert('Service Added!');
             }
+            // Reset Form and State
             setServiceForm({ name: '', description: '', category: 'Cleaning', price: '', duration: 60 });
-            setEditingId(null);
+            setEditingServiceId(null);
             fetchMyServices();
         } catch (error) {
             console.error(error);
@@ -88,13 +89,13 @@ const ProviderDashboard = () => {
 
     const handleEditClick = (service) => {
         setServiceForm({
-            name: service.name,
-            description: service.description,
-            category: service.category,
-            price: service.price,
-            duration: service.duration
+            name: service.name || '',
+            description: service.description || '',
+            category: service.category || 'Cleaning',
+            price: service.price || '',
+            duration: service.duration || 60
         });
-        setEditingId(service._id);
+        setEditingServiceId(service._id);
         // Scroll to form (simple implementation)
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -250,7 +251,7 @@ const ProviderDashboard = () => {
 
                 {/* Services Management */}
                 <div>
-                    <h2 className="text-xl font-bold mb-6">{editingId ? 'Edit Service' : 'Add New Service'}</h2>
+                    <h2 className="text-xl font-bold mb-6">{editingServiceId ? 'Edit Service' : 'Add New Service'}</h2>
                     <div className="bg-white p-8 rounded-xl shadow-lg border border-slate-100 h-fit mb-8">
                         <form onSubmit={handleSubmitService} className="space-y-4">
                             <input type="text" placeholder="Service Name" className="w-full p-2 border rounded"
@@ -274,11 +275,11 @@ const ProviderDashboard = () => {
                             </div>
 
                             <button className="w-full bg-indigo-600 text-white py-2 rounded font-bold hover:bg-indigo-700 transition">
-                                {editingId ? 'Update Service' : 'Add Service'}
+                                {editingServiceId ? 'Update Service' : 'Add Service'}
                             </button>
-                            {editingId && (
-                                <button type="button" onClick={() => { setEditingId(null); setServiceForm({ name: '', description: '', category: 'Cleaning', price: '', duration: 60 }) }} className="w-full text-slate-500 py-2">
-                                    Cancel
+                            {editingServiceId && (
+                                <button type="button" onClick={() => { setEditingServiceId(null); setServiceForm({ name: '', description: '', category: 'Cleaning', price: '', duration: 60 }) }} className="w-full text-slate-500 py-2">
+                                    Cancel Edit
                                 </button>
                             )}
                         </form>
