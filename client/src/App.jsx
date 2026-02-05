@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Home from './pages/Home';
 import ProviderList from './pages/ProviderList';
@@ -50,12 +50,10 @@ function App() {
     <div className="min-h-screen bg-slate-50 font-sans">
       {showNavbar && <Navbar />}
       <Routes>
+        {/* Redirect Root to Login */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
         {/* Public Routes with Redirect if Logged In */}
-        <Route path="/" element={
-          <RedirectIfLoggedIn>
-            <Home />
-          </RedirectIfLoggedIn>
-        } />
         <Route path="/login" element={
           <RedirectIfLoggedIn>
             <LoginPage />
