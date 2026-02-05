@@ -11,7 +11,13 @@ export const AuthProvider = ({ children }) => {
 
     // Initialize Axios defaults
     // Use environment variable for API URL (set VITE_API_URL in .env)
-    axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+    // Safely append /api if not present in the user-provided URL
+    const envUrl = import.meta.env.VITE_API_URL;
+    const baseURL = envUrl
+        ? (envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`)
+        : 'http://localhost:5001/api';
+
+    axios.defaults.baseURL = baseURL;
 
     useEffect(() => {
         const checkLoggedIn = () => {

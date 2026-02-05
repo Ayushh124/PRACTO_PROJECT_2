@@ -3,9 +3,6 @@ const Service = require('../models/Service');
 // @desc    Get all services
 // @route   GET /api/services
 // @access  Public
-// @desc    Get all services
-// @route   GET /api/services
-// @access  Public
 const getServices = async (req, res) => {
     try {
         const keyword = req.query.keyword
