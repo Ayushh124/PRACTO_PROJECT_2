@@ -250,6 +250,35 @@ const getAvailableSlots = async (req, res) => {
     }
 };
 
+// @desc    Get taken slots for a specific date (for visual disabling in frontend)
+// @route   GET /api/appointments/taken-slots
+// @access  Private
+const getTakenSlots = async (req, res) => {
+    try {
+        const { providerId, date } = req.query;
+
+        if (!providerId || !date) {
+            return res.status(400).json({ message: 'Missing parameters' });
+        }
+
+        const startDateTime = new Date(date);
+        startDateTime.setHours(0, 0, 0, 0);
+        const endDateTime = new Date(startDateTime);
+        endDateTime.setHours(23, 59, 59, 999);
+
+        const appointments = await Appointment.find({
+            providerId,
+            status: { $nin: ['cancelled', 'rejected'] },
+            date: { $gte: startDateTime, $lte: endDateTime }
+        });
+
+        const takenSlots = appointments.map(appt => appt.timeSlot);
+        res.json(takenSlots);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     createAppointment,
     getMyAppointments,
