@@ -16,6 +16,10 @@ const BookingPage = () => {
     const [takenSlots, setTakenSlots] = useState([]);
     const [availableSlots, setAvailableSlots] = useState([]);
 
+    // Add missing state variables
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+
     useEffect(() => {
         const fetchService = async () => {
             try {
